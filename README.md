@@ -7,6 +7,7 @@ Transform any local multiplayer game into a network-enabled co-op experience. Yo
 ## Features
 
 - **Universal Game Support** - Works with ANY game that supports local multiplayer
+- **Keyboard OR Controller** - No controller? No problem! Use your keyboard as a virtual gamepad
 - **Low Latency** - UDP streaming optimized for responsive gameplay (~20-30ms on LAN)
 - **Self-Hosted** - No cloud services, complete privacy and control
 - **Simple Setup** - Python-based, easy to install and configure
@@ -108,9 +109,14 @@ couchcontroller-host
 # Note the IP address shown (e.g., 192.168.1.100)
 ```
 
-**Client (remote player):**
+**Client (remote player with controller):**
 ```bash
 couchcontroller-client --host 192.168.1.100
+```
+
+**Client (using keyboard - no controller needed!):**
+```bash
+couchcontroller-client --host 192.168.1.100 --keyboard
 ```
 
 **Then launch your game on the host!**
@@ -126,6 +132,7 @@ See [QUICK_START.md](QUICK_START.md) for detailed walkthrough.
 ## Documentation
 
 - **[QUICK_START.md](QUICK_START.md)** - Get running in 5 minutes
+- **[KEYBOARD_GUIDE.md](KEYBOARD_GUIDE.md)** - Play with keyboard (no controller needed!)
 - **[SETUP.md](SETUP.md)** - Complete installation and configuration guide
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - Technical deep dive and design decisions
 - **[test_components.py](test_components.py)** - Verify your installation
@@ -203,6 +210,22 @@ couchcontroller-host --fps 30
 couchcontroller-host --max-clients 4
 ```
 
+### Example 4: Playing Without Controllers
+```bash
+# Perfect for when you don't have controllers!
+
+# Player 1 (has controller)
+couchcontroller-client --host YOUR_IP
+
+# Player 2 (using keyboard)
+couchcontroller-client --host YOUR_IP --keyboard
+
+# Player 3 (also keyboard)
+couchcontroller-client --host YOUR_IP --keyboard --fullscreen
+```
+
+See [KEYBOARD_GUIDE.md](KEYBOARD_GUIDE.md) for keyboard controls!
+
 ## Troubleshooting
 
 **Host Issues:**
@@ -211,6 +234,7 @@ couchcontroller-host --max-clients 4
 - Start CouchController BEFORE launching game
 
 **Client Issues:**
+- No controller? Use `--keyboard` flag to play with keyboard!
 - Verify controller is connected (check Windows "Game Controllers")
 - Test network with `ping <host-ip>`
 - Ensure you're on the same network as host

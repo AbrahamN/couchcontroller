@@ -14,6 +14,7 @@ import pygame
 import av
 import numpy as np
 from ..client.controller_input import ControllerReader
+from ..client.keyboard_input import KeyboardMapper
 from ..network.client import GameClient
 from ..common.protocol import ControllerState
 
@@ -60,7 +61,7 @@ class VideoDecoder:
 class CouchControllerClient:
     """Main client application"""
 
-    def __init__(self, host: str, controller_index: int = 0, fullscreen: bool = False):
+    def __init__(self, host: str, controller_index: int = 0, fullscreen: bool = False, use_keyboard: bool = False):
         """
         Initialize client
 
@@ -68,13 +69,15 @@ class CouchControllerClient:
             host: Host IP address or hostname
             controller_index: Index of controller to use (0 for first)
             fullscreen: Start in fullscreen mode
+            use_keyboard: Use keyboard instead of controller
         """
         self.host = host
         self.controller_index = controller_index
         self.fullscreen = fullscreen
+        self.use_keyboard = use_keyboard
 
         # Components
-        self.controller_reader = None
+        self.controller_reader = None  # Can be ControllerReader or KeyboardMapper
         self.network_client = None
         self.video_decoder = None
 
@@ -159,26 +162,39 @@ class CouchControllerClient:
 
         pygame.display.set_caption(f"CouchController - Connecting to {self.host}...")
 
-        # Controller reader
-        self.controller_reader = ControllerReader(controller_index=self.controller_index)
+        # Input reader - keyboard or controller
+        if self.use_keyboard:
+            logger.info("Using keyboard input")
+            self.controller_reader = KeyboardMapper()
 
-        if not self.controller_reader.is_connected():
-            logger.error("")
-            logger.error("=" * 60)
-            logger.error("NO CONTROLLER DETECTED")
-            logger.error("=" * 60)
-            logger.error("")
-            logger.error("Please connect a game controller and try again.")
-            logger.error("")
-            logger.error("Troubleshooting:")
-            logger.error("1. Connect your controller via USB or Bluetooth")
-            logger.error("2. Verify it works in Windows 'Game Controllers' settings")
-            logger.error("   - Press Win+R, type 'joy.cpl', press Enter")
-            logger.error("3. Try a different USB port")
-            logger.error("4. Check for controller driver updates")
-            logger.error("")
-            logger.error("=" * 60)
-            raise RuntimeError("No controller found")
+            # Print keyboard mapping
+            logger.info("")
+            logger.info(self.controller_reader.get_mapping_description())
+            logger.info("")
+        else:
+            logger.info("Using controller input")
+            self.controller_reader = ControllerReader(controller_index=self.controller_index)
+
+            if not self.controller_reader.is_connected():
+                logger.error("")
+                logger.error("=" * 60)
+                logger.error("NO CONTROLLER DETECTED")
+                logger.error("=" * 60)
+                logger.error("")
+                logger.error("Please connect a game controller and try again.")
+                logger.error("")
+                logger.error("Troubleshooting:")
+                logger.error("1. Connect your controller via USB or Bluetooth")
+                logger.error("2. Verify it works in Windows 'Game Controllers' settings")
+                logger.error("   - Press Win+R, type 'joy.cpl', press Enter")
+                logger.error("3. Try a different USB port")
+                logger.error("4. Check for controller driver updates")
+                logger.error("")
+                logger.error("Alternative: Use keyboard instead")
+                logger.error("  couchcontroller-client --host <IP> --keyboard")
+                logger.error("")
+                logger.error("=" * 60)
+                raise RuntimeError("No controller found")
 
         # Network client
         self.network_client = GameClient(host=self.host)
@@ -307,6 +323,11 @@ def main():
         help='Controller index to use (default: 0 = first controller)'
     )
     parser.add_argument(
+        '--keyboard',
+        action='store_true',
+        help='Use keyboard instead of game controller (perfect if you don\'t have a controller!)'
+    )
+    parser.add_argument(
         '--fullscreen',
         action='store_true',
         help='Start in fullscreen mode'
@@ -326,7 +347,8 @@ def main():
     client = CouchControllerClient(
         host=args.host,
         controller_index=args.controller,
-        fullscreen=args.fullscreen
+        fullscreen=args.fullscreen,
+        use_keyboard=args.keyboard
     )
 
     try:
