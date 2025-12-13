@@ -20,26 +20,31 @@ class ScreenCapture:
             monitor: Monitor number to capture (1 = primary, 0 = all monitors)
             target_fps: Target frames per second for capture
         """
-        self.sct = mss.mss()
         self.monitor = monitor
         self.target_fps = target_fps
         self.frame_time = 1.0 / target_fps
         self.running = False
         self._capture_thread = None
+        self._sct = None  # Will be created in capture thread
 
     def get_monitor_info(self):
         """Get information about the selected monitor"""
-        return self.sct.monitors[self.monitor]
+        # Create temporary sct instance to get monitor info
+        with mss.mss() as sct:
+            return sct.monitors[self.monitor]
 
-    def capture_frame(self) -> np.ndarray:
+    def capture_frame(self, sct) -> np.ndarray:
         """
         Capture a single frame from the screen
+
+        Args:
+            sct: mss instance to use for capture
 
         Returns:
             numpy array in BGR format (compatible with OpenCV)
         """
-        monitor = self.sct.monitors[self.monitor]
-        screenshot = self.sct.grab(monitor)
+        monitor = sct.monitors[self.monitor]
+        screenshot = sct.grab(monitor)
 
         # Convert to numpy array (BGRA -> BGR for encoding)
         frame = np.array(screenshot)[:, :, :3]  # Drop alpha channel
@@ -62,28 +67,40 @@ class ScreenCapture:
 
     def _capture_loop(self, callback: Callable[[np.ndarray, float], None]):
         """Continuous capture loop"""
-        last_capture = time.perf_counter()
+        # Create mss instance in this thread (thread-safe)
+        with mss.mss() as sct:
+            self._sct = sct
+            last_capture = time.perf_counter()
 
-        while self.running:
-            start = time.perf_counter()
+            while self.running:
+                start = time.perf_counter()
 
-            # Capture frame
-            frame = self.capture_frame()
-            timestamp = time.time()
+                try:
+                    # Capture frame
+                    frame = self.capture_frame(sct)
+                    timestamp = time.time()
 
-            # Call callback with frame
-            callback(frame, timestamp)
+                    # Call callback with frame
+                    callback(frame, timestamp)
+                except Exception as e:
+                    # Log error but continue capturing
+                    import logging
+                    logging.error(f"Frame capture error: {e}")
+                    time.sleep(0.1)
+                    continue
 
-            # Maintain target FPS
-            elapsed = time.perf_counter() - start
-            sleep_time = max(0, self.frame_time - elapsed)
-            if sleep_time > 0:
-                time.sleep(sleep_time)
+                # Maintain target FPS
+                elapsed = time.perf_counter() - start
+                sleep_time = max(0, self.frame_time - elapsed)
+                if sleep_time > 0:
+                    time.sleep(sleep_time)
 
-            # Track actual FPS
-            now = time.perf_counter()
-            actual_fps = 1.0 / (now - last_capture) if (now - last_capture) > 0 else 0
-            last_capture = now
+                # Track actual FPS
+                now = time.perf_counter()
+                actual_fps = 1.0 / (now - last_capture) if (now - last_capture) > 0 else 0
+                last_capture = now
+
+            self._sct = None
 
     def stop_capture(self):
         """Stop screen capture"""
@@ -95,8 +112,6 @@ class ScreenCapture:
     def __del__(self):
         """Cleanup"""
         self.stop_capture()
-        if hasattr(self, 'sct'):
-            self.sct.close()
 
 
 class VideoEncoder:

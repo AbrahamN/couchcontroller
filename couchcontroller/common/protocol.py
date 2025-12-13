@@ -118,20 +118,20 @@ class ControllerState(NamedTuple):
 class NetworkMessage:
     """Base class for network messages"""
 
-    HEADER_SIZE = 8  # Type(1) + Sequence(3) + Length(4)
+    HEADER_SIZE = 9  # Type(1) + Sequence(4) + Length(4) - using '!BII' format
     MAX_PAYLOAD_SIZE = 65507 - HEADER_SIZE  # UDP max - header
 
     def __init__(self, msg_type: MessageType, payload: bytes = b'', sequence: int = 0):
         self.msg_type = msg_type
         self.payload = payload
-        self.sequence = sequence % (2**24)  # 24-bit sequence number
+        self.sequence = sequence % (2**32)  # 32-bit sequence number
 
     def pack(self) -> bytes:
         """Pack message into bytes for transmission"""
         header = struct.pack(
             '!BII',
             self.msg_type,
-            self.sequence & 0xFFFFFF,  # 24-bit sequence
+            self.sequence,
             len(self.payload)
         )
         return header + self.payload
