@@ -221,7 +221,7 @@ class ScreenStreamer:
         self,
         monitor: int = 1,
         fps: int = 60,
-        bitrate: int = 5_000_000,
+        bitrate: int = 2_000_000,  # 2 Mbps - lower to keep UDP packets reasonable
         max_queue_size: int = 5
     ):
         """
@@ -230,13 +230,14 @@ class ScreenStreamer:
         Args:
             monitor: Monitor to capture
             fps: Target FPS
-            bitrate: Target bitrate
+            bitrate: Target bitrate (2 Mbps keeps frames under UDP limit)
             max_queue_size: Max frames to queue before dropping
         """
         self.capture = ScreenCapture(monitor=monitor, target_fps=fps)
         self.encoded_queue = Queue(maxsize=max_queue_size)
         self.encoder = None
         self.running = False
+        self.bitrate = bitrate
 
     def start(self, frame_callback: Optional[Callable[[bytes, float], None]] = None):
         """
@@ -255,7 +256,7 @@ class ScreenStreamer:
             width=width,
             height=height,
             fps=self.capture.target_fps,
-            bitrate=5_000_000
+            bitrate=self.bitrate
         )
 
         self.running = True
