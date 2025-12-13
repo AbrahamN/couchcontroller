@@ -154,8 +154,8 @@ The root-level scripts (`host.py`, `client.py`, `test_components.py`) are mainta
 
 **Old way still works:**
 ```bash
-python host.py
-python client.py --host 192.168.1.100
+couchcontroller-host
+couchcontroller-client --host 192.168.1.100
 ```
 
 **New way (after pip install):**

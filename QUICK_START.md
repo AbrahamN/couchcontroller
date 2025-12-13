@@ -25,7 +25,7 @@ pip install -r requirements.txt
 # Run as Administrator and restart
 
 # 3. Test installation
-python test_components.py
+couchcontroller-test
 ```
 
 ### On Client Machine(s)
@@ -38,7 +38,7 @@ pip install -r requirements.txt
 # 2. Connect controller
 
 # 3. Test installation
-python test_components.py
+couchcontroller-test
 ```
 
 ## First Test (Without Game)
@@ -48,7 +48,7 @@ python test_components.py
 On the host machine:
 
 ```bash
-python host.py
+couchcontroller-host
 ```
 
 You should see:
@@ -61,7 +61,7 @@ Target FPS: 60
 Max clients: 4
 
 Clients can connect with:
-  python client.py --host 192.168.1.100
+  couchcontroller-client --host 192.168.1.100
 
 Press Ctrl+C to stop
 ============================================================
@@ -74,7 +74,7 @@ Press Ctrl+C to stop
 On a client machine, using the IP from above:
 
 ```bash
-python client.py --host 192.168.1.100
+couchcontroller-client --host 192.168.1.100
 ```
 
 You should see:
@@ -105,10 +105,10 @@ If buttons light up on the host when you press them on the client: **Success!**
 1. **Start CouchController FIRST**
    ```bash
    # Host
-   python host.py
+   couchcontroller-host
 
    # Clients (on other machines)
-   python client.py --host <HOST_IP>
+   couchcontroller-client --host <HOST_IP>
    ```
 
 2. **Launch the game on host**
@@ -131,10 +131,10 @@ If buttons light up on the host when you press them on the client: **Success!**
 
 ```bash
 # Host (Player 1's machine)
-python host.py
+couchcontroller-host
 
 # Client (Player 2's machine, same room)
-python client.py --host 192.168.1.100 --fullscreen
+couchcontroller-client --host 192.168.1.100 --fullscreen
 ```
 
 ### Scenario 2: Multiple Players, Remote
@@ -143,10 +143,10 @@ python client.py --host 192.168.1.100 --fullscreen
 
 ```bash
 # Host
-python host.py --fps 30  # Lower FPS for better bandwidth
+couchcontroller-host --fps 30  # Lower FPS for better bandwidth
 
 # Clients (remote locations)
-python client.py --host <HOST_IP>
+couchcontroller-client --host <HOST_IP>
 ```
 
 **Note:** Requires port forwarding or VPN for internet play.
@@ -157,10 +157,10 @@ python client.py --host <HOST_IP>
 
 ```bash
 # Host (wired connection)
-python host.py --fps 60
+couchcontroller-host --fps 60
 
 # Clients (preferably wired)
-python client.py --host <HOST_IP>
+couchcontroller-client --host <HOST_IP>
 ```
 
 ### Scenario 4: Low-End Client Machine
@@ -169,10 +169,10 @@ python client.py --host <HOST_IP>
 
 ```bash
 # Host (reduce quality)
-python host.py --fps 30
+couchcontroller-host --fps 30
 
 # Client
-python client.py --host <HOST_IP>
+couchcontroller-client --host <HOST_IP>
 ```
 
 ## Troubleshooting Quick Fixes
@@ -203,7 +203,7 @@ python client.py --host <HOST_IP>
 ### "Video is choppy" (Client)
 ```bash
 # 1. Use wired Ethernet
-# 2. Lower FPS: python host.py --fps 30
+# 2. Lower FPS: couchcontroller-host --fps 30
 # 3. Close bandwidth-heavy apps
 # 4. Check: ping -t <HOST_IP>
 ```
@@ -239,7 +239,7 @@ Here's a complete example of a typical session:
 # === HOST (Machine A: 192.168.1.100) ===
 
 # 1. Start CouchController
-python host.py
+couchcontroller-host
 # Output: HOST READY! Clients can connect to 192.168.1.100
 
 # 2. Launch game (e.g., Overcooked 2)
@@ -251,7 +251,7 @@ python host.py
 
 # 1. Connect controller
 # 2. Start client
-python client.py --host 192.168.1.100
+couchcontroller-client --host 192.168.1.100
 # Output: CLIENT READY! Assigned slot: 0
 
 # 3. See host's screen in window
@@ -262,7 +262,7 @@ python client.py --host 192.168.1.100
 
 # 1. Connect controller
 # 2. Start client
-python client.py --host 192.168.1.100 --fullscreen
+couchcontroller-client --host 192.168.1.100 --fullscreen
 # Output: CLIENT READY! Assigned slot: 1
 
 # 3. See host's screen fullscreen
@@ -300,8 +300,8 @@ Before starting a game session:
 
 If you get stuck:
 
-1. Run tests: `python test_components.py`
-2. Check logs with debug: `python host.py --debug`
+1. Run tests: `couchcontroller-test`
+2. Check logs with debug: `couchcontroller-host --debug`
 3. Review SETUP.md for detailed instructions
 
 ## Tips for Best Experience

@@ -131,6 +131,7 @@ def test_controller():
         if joystick_count == 0:
             print("  ⚠ No controllers detected")
             print("    Connect a controller to test input capture")
+            print("    Or use keyboard: couchcontroller-client --host <IP> --keyboard")
         else:
             print(f"  ✓ Found {joystick_count} controller(s):")
             for i in range(joystick_count):
@@ -262,8 +263,16 @@ def main():
         print("All tests passed! You're ready to use CouchController.")
         print()
         print("Next steps:")
-        print("  1. On host: python host.py")
-        print("  2. On client: python client.py --host <HOST_IP>")
+        print("  1. On host:")
+        print("     couchcontroller-host")
+        print()
+        print("  2. On client (with controller):")
+        print("     couchcontroller-client --host <HOST_IP>")
+        print()
+        print("  3. On client (with keyboard):")
+        print("     couchcontroller-client --host <HOST_IP> --keyboard")
+        print()
+        print("For help: couchcontroller-host --help")
         return 0
     else:
         print()
