@@ -50,7 +50,7 @@ def check_vigem_driver():
 class CouchControllerHost:
     """Main host application"""
 
-    def __init__(self, monitor: int = 1, fps: int = 60, max_clients: int = 4):
+    def __init__(self, monitor: int = 1, fps: int = 60, max_clients: int = 4, bitrate: int = 2_000_000):
         """
         Initialize host
 
@@ -58,10 +58,12 @@ class CouchControllerHost:
             monitor: Monitor to capture (1 = primary)
             fps: Target FPS for screen capture
             max_clients: Maximum number of clients
+            bitrate: Video bitrate in bits per second
         """
         self.monitor = monitor
         self.fps = fps
         self.max_clients = max_clients
+        self.bitrate = bitrate
 
         # Components
         self.screen_streamer = None
@@ -129,8 +131,14 @@ class CouchControllerHost:
         # Screen streamer
         self.screen_streamer = ScreenStreamer(
             monitor=self.monitor,
-            fps=self.fps
+            fps=self.fps,
+            bitrate=self.bitrate
         )
+
+        # Log what we're capturing
+        monitor_info = self.screen_streamer.capture.get_monitor_info()
+        logger.info(f"Capturing monitor {self.monitor}: {monitor_info['width']}x{monitor_info['height']}")
+        logger.info(f"Video settings: {self.fps} FPS, {self.bitrate/1_000_000:.1f} Mbps bitrate")
 
         # Virtual controller manager
         self.controller_manager = VirtualControllerManager(
@@ -214,6 +222,12 @@ def main():
         help='Target frames per second (default: 60)'
     )
     parser.add_argument(
+        '--bitrate',
+        type=float,
+        default=2.0,
+        help='Video bitrate in Mbps (default: 2.0). Lower for smaller frames, higher for better quality.'
+    )
+    parser.add_argument(
         '--max-clients',
         type=int,
         default=4,
@@ -275,7 +289,8 @@ def main():
     host = CouchControllerHost(
         monitor=args.monitor,
         fps=args.fps,
-        max_clients=args.max_clients
+        max_clients=args.max_clients,
+        bitrate=int(args.bitrate * 1_000_000)  # Convert Mbps to bits/sec
     )
 
     try:

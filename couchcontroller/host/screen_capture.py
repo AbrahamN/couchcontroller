@@ -157,13 +157,24 @@ class VideoEncoder:
         self.stream.height = height
         self.stream.pix_fmt = 'yuv420p'
         self.stream.bit_rate = bitrate
+        self.stream.bit_rate_tolerance = bitrate // 2
+        self.stream.gop_size = fps  # Keyframe every 1 second
 
-        # Low latency options
+        # Low latency + STRICT size control options
+        # For UDP: MUST stay under ~4KB per frame at 2 Mbps / 60 FPS
         self.stream.options = {
             'preset': preset,
             'tune': tune,
+            'g': str(fps),  # GOP size (keyframe interval)
+            'keyint_min': str(fps),  # Min keyframe interval
+            'sc_threshold': '0',  # Disable scene change detection
             'rc-lookahead': '0',  # No lookahead for minimal latency
-            'rc': 'cbr',  # Constant bitrate for predictable bandwidth
+            # Rate control: Use ABR (average bitrate) mode, NOT CRF
+            # This strictly enforces bitrate limits
+            'bufsize': str(bitrate),  # VBV buffer size
+            'maxrate': str(bitrate),  # Max bitrate = target bitrate
+            'minrate': str(bitrate),  # Min bitrate = target bitrate (CBR-like)
+            'b:v': str(bitrate),  # Explicit target bitrate
         }
 
         self.frame_count = 0
@@ -192,7 +203,15 @@ class VideoEncoder:
         # Return encoded data
         if packets:
             # Concatenate all packet data
-            return b''.join(bytes(packet) for packet in packets)
+            encoded_data = b''.join(bytes(packet) for packet in packets)
+
+            # Log large frames for debugging
+            if len(encoded_data) > 60000:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Large encoded frame {self.frame_count}: {len(encoded_data)} bytes")
+
+            return encoded_data
         return None
 
     def flush(self) -> bytes:
@@ -246,10 +265,24 @@ class ScreenStreamer:
         Args:
             frame_callback: Optional callback for encoded frames (data, timestamp)
         """
+        import logging
+        logger = logging.getLogger(__name__)
+
         # Get monitor dimensions
         monitor_info = self.capture.get_monitor_info()
         width = monitor_info['width']
         height = monitor_info['height']
+
+        # Calculate expected frame size
+        fps = self.capture.target_fps
+        avg_frame_size = (self.bitrate / fps / 8)  # bytes per frame
+
+        logger.info(f"Video encoding: {width}x{height} @ {fps} FPS, {self.bitrate/1_000_000:.1f} Mbps")
+        logger.info(f"Expected avg frame size: {avg_frame_size:.0f} bytes (keyframes may be larger)")
+
+        if avg_frame_size > 30000:
+            logger.warning(f"Average frame size is high! May exceed UDP limits.")
+            logger.warning(f"Consider: Lower resolution, reduce FPS, or decrease bitrate")
 
         # Initialize encoder
         self.encoder = VideoEncoder(
