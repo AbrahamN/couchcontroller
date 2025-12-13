@@ -1,0 +1,7 @@
+include README.md
+include LICENSE
+include QUICK_START.md
+include SETUP.md
+include ARCHITECTURE.md
+include requirements.txt
+recursive-include couchcontroller *.py

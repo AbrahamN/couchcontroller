@@ -1,0 +1,22 @@
+# Core dependencies
+numpy>=1.21.0
+opencv-python>=4.5.0
+
+# Screen capture (host)
+mss>=6.1.0              # Fast cross-platform screen capture
+Pillow>=9.0.0           # Image processing
+
+# Virtual controller (host) - Windows only
+vgamepad>=0.0.8         # ViGEmBus wrapper for virtual Xbox controllers
+
+# Controller input (client)
+pygame>=2.1.0           # Controller input and display
+inputs>=0.5             # Cross-platform controller library (fallback)
+
+# Video encoding/decoding
+av>=10.0.0              # PyAV - FFmpeg bindings for Python
+
+# Networking
+# (using built-in socket library, but may add these later)
+# pyzmq>=24.0.0         # High-performance messaging (optional)
+# msgpack>=1.0.0        # Fast serialization (optional)
