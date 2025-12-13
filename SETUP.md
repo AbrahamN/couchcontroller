@@ -75,13 +75,13 @@ On the machine running the game:
 
 ```bash
 # Start with default settings (primary monitor, 60 FPS)
-python host.py
+couchcontroller-host
 
 # Customize settings
-python host.py --monitor 1 --fps 60 --max-clients 4
+couchcontroller-host --monitor 1 --fps 60 --max-clients 4
 
 # See all options
-python host.py --help
+couchcontroller-host --help
 ```
 
 The host will display:
@@ -97,23 +97,23 @@ On remote player machines:
 
 ```bash
 # Connect to host (replace with actual host IP)
-python client.py --host 192.168.1.100
+couchcontroller-client --host 192.168.1.100
 
 # Use a specific controller (if you have multiple)
-python client.py --host 192.168.1.100 --controller 1
+couchcontroller-client --host 192.168.1.100 --controller 1
 
 # Start in fullscreen mode
-python client.py --host 192.168.1.100 --fullscreen
+couchcontroller-client --host 192.168.1.100 --fullscreen
 
 # See all options
-python client.py --help
+couchcontroller-client --help
 ```
 
 ### Typical Workflow
 
 1. **Host starts CouchController**
    ```bash
-   python host.py
+   couchcontroller-host
    ```
 
 2. **Host notes the IP address** (e.g., `192.168.1.100`)
@@ -124,7 +124,7 @@ python client.py --help
 
 4. **Clients connect**
    ```bash
-   python client.py --host 192.168.1.100
+   couchcontroller-client --host 192.168.1.100
    ```
 
 5. **Clients see host's screen** and can control their assigned player
@@ -167,7 +167,7 @@ pip install vgamepad
 - Try disabling Windows Firewall temporarily to test
 
 **"Screen capture is slow"**
-- Lower FPS: `python host.py --fps 30`
+- Lower FPS: `couchcontroller-host --fps 30`
 - Close other applications
 - Check CPU usage
 
@@ -220,7 +220,7 @@ pip install vgamepad
 ### For Best Latency (competitive games)
 ```bash
 # Host: Lower FPS, faster encoding
-python host.py --fps 30
+couchcontroller-host --fps 30
 
 # Less data to transfer = lower latency
 ```
@@ -228,7 +228,7 @@ python host.py --fps 30
 ### For Best Quality (story/casual games)
 ```bash
 # Host: Higher FPS and bitrate
-python host.py --fps 60
+couchcontroller-host --fps 60
 
 # Ensure good network bandwidth
 ```
@@ -236,7 +236,7 @@ python host.py --fps 60
 ### For Many Clients
 ```bash
 # Host: Lower FPS and resolution
-python host.py --fps 30 --max-clients 4
+couchcontroller-host --fps 30 --max-clients 4
 
 # Monitor network bandwidth
 ```
@@ -275,7 +275,7 @@ Once you have everything working:
 If you encounter issues:
 
 1. Check this guide's troubleshooting section
-2. Enable debug mode: `python host.py --debug`
+2. Enable debug mode: `couchcontroller-host --debug`
 3. Check the logs for error messages
 4. Verify all prerequisites are installed
 
