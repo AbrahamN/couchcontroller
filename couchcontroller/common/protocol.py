@@ -74,7 +74,7 @@ class ControllerState(NamedTuple):
         # Pack: buttons(H), lstick_x(h), lstick_y(h), rstick_x(h), rstick_y(h), trigger_l(B), trigger_r(B)
         # Total: 14 bytes
         return struct.pack(
-            '!Hhhh BB',
+            '!HhhhhBB',
             buttons,
             state.lstick_x,
             state.lstick_y,
@@ -88,7 +88,7 @@ class ControllerState(NamedTuple):
     def unpack(cls, data: bytes) -> 'ControllerState':
         """Unpack controller state from bytes"""
         buttons, lstick_x, lstick_y, rstick_x, rstick_y, trigger_l, trigger_r = struct.unpack(
-            '!Hhhh BB', data
+            '!HhhhhBB', data
         )
 
         return cls(

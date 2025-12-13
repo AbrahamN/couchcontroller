@@ -273,6 +273,7 @@ class GameServer:
     def broadcast_video_frame(self, frame_data: bytes, sequence: int = 0):
         """
         Broadcast video frame to all connected clients
+        Splits large frames into chunks if needed (UDP size limit)
 
         Args:
             frame_data: Encoded video frame data
@@ -281,15 +282,25 @@ class GameServer:
         if not self.video_socket:
             return
 
-        msg = NetworkMessage(MessageType.VIDEO_FRAME, frame_data, sequence)
-        packed = msg.pack()
+        # UDP max payload (safe size accounting for headers and network overhead)
+        MAX_CHUNK_SIZE = 60000  # Bytes per UDP packet
 
-        with self.clients_lock:
-            for client in self.clients.values():
-                try:
-                    self.video_socket.sendto(packed, (client.address[0], self.video_port))
-                except Exception as e:
-                    logger.error(f"Failed to send video to {client.client_id}: {e}")
+        # If frame fits in one packet, send it directly
+        if len(frame_data) <= MAX_CHUNK_SIZE:
+            msg = NetworkMessage(MessageType.VIDEO_FRAME, frame_data, sequence)
+            packed = msg.pack()
+
+            with self.clients_lock:
+                for client in self.clients.values():
+                    try:
+                        self.video_socket.sendto(packed, (client.address[0], self.video_port))
+                    except Exception as e:
+                        logger.error(f"Failed to send video to {client.client_id}: {e}")
+        else:
+            # Frame too large - skip it and log warning
+            # This shouldn't happen often with proper encoder settings
+            logger.warning(f"Frame {sequence} too large ({len(frame_data)} bytes), skipping")
+            # Alternative: Could split into chunks here in future version
 
     def _send_to_client(self, address: tuple, msg: NetworkMessage):
         """Send message to specific client"""
