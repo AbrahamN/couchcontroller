@@ -136,9 +136,12 @@ class GameClient:
 
     def _video_receiver_loop(self):
         """Receive video frames from server"""
+        logger.info("Video receiver thread started")
+        frames_received = 0
         while self.running:
             try:
                 data, address = self.video_socket.recvfrom(65536)
+                logger.debug(f"Received UDP packet: {len(data)} bytes from {address}")
 
                 # Parse message
                 try:
@@ -148,11 +151,19 @@ class GameClient:
                     continue
 
                 if msg.msg_type == MessageType.VIDEO_FRAME:
+                    frames_received += 1
                     self.video_sequence = msg.sequence
+                    logger.debug(f"Received VIDEO_FRAME message, seq={msg.sequence}, payload={len(msg.payload)} bytes")
 
                     # Callback with video frame
                     if self.on_video_frame:
                         self.on_video_frame(msg.payload, msg.sequence)
+                    else:
+                        logger.warning("on_video_frame callback not set!")
+
+                    # Log stats every 60 frames
+                    if frames_received % 60 == 0:
+                        logger.info(f"Video receiver: {frames_received} frames received")
 
             except socket.timeout:
                 continue

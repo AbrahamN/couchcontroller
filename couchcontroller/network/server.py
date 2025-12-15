@@ -280,6 +280,7 @@ class GameServer:
             sequence: Sequence number for this frame
         """
         if not self.video_socket:
+            logger.warning("Cannot broadcast: video_socket not initialized")
             return
 
         # UDP max payload (safe size accounting for headers and network overhead)
@@ -290,9 +291,15 @@ class GameServer:
             msg = NetworkMessage(MessageType.VIDEO_FRAME, frame_data, sequence)
             packed = msg.pack()
 
+            logger.debug(f"Broadcasting frame {sequence}, size={len(frame_data)} bytes, packed={len(packed)} bytes")
+
             with self.clients_lock:
+                num_clients = len(self.clients)
+                if num_clients == 0:
+                    logger.debug("No clients connected to receive frame")
                 for client in self.clients.values():
                     try:
+                        logger.debug(f"Sending frame {sequence} to {client.client_id} at {client.address[0]}:{self.video_port}")
                         self.video_socket.sendto(packed, (client.address[0], self.video_port))
                     except Exception as e:
                         logger.error(f"Failed to send video to {client.client_id}: {e}")

@@ -32,7 +32,9 @@ class VideoDecoder:
 
     def __init__(self):
         self.codec = av.CodecContext.create('h264', 'r')
+        self.codec.open()
         self.frame_count = 0
+        self.first_frame_decoded = False
 
     def decode_frame(self, data: bytes) -> list:
         """
@@ -49,9 +51,18 @@ class VideoDecoder:
                 try:
                     decoded_frames = self.codec.decode(packet)
                     frames.extend(decoded_frames)
+
+                    if decoded_frames and not self.first_frame_decoded:
+                        self.first_frame_decoded = True
+                        logger.info("Successfully decoded first video frame!")
+
                 except Exception as e:
                     logger.debug(f"Decode error: {e}")
 
+            if not frames and self.frame_count < 100:
+                logger.debug("No frames decoded - may be waiting for keyframe")
+
+            self.frame_count += 1
             return frames
         except Exception as e:
             logger.error(f"Failed to decode frame: {e}")
@@ -253,12 +264,16 @@ class CouchControllerClient:
     def _on_video_frame(self, frame_data: bytes, sequence: int):
         """Handle received video frame"""
         self.frames_received += 1
+        logger.debug(f"Received frame {sequence}, size: {len(frame_data)} bytes")
 
         # Decode frame
         frames = self.video_decoder.decode_frame(frame_data)
 
         if not frames:
+            logger.debug(f"No frames decoded from sequence {sequence}")
             return
+
+        logger.debug(f"Decoded {len(frames)} frame(s) from sequence {sequence}")
 
         # Display first frame
         frame = frames[0]
@@ -279,9 +294,10 @@ class CouchControllerClient:
 
             # Blit to screen
             self.screen.blit(scaled_surface, (0, 0))
+            logger.debug(f"Frame {sequence} displayed successfully")
 
         except Exception as e:
-            logger.error(f"Failed to display frame: {e}")
+            logger.error(f"Failed to display frame: {e}", exc_info=True)
 
     def stop(self):
         """Stop the client"""
